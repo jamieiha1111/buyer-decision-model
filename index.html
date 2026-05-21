@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buyer Decision Model -- Pre-Construction &amp; Existing Homes</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0a1628;--slate:#1e3a5f;
+  --accent:#185FA5;--accent2:#378ADD;--accent-light:#E6F1FB;--accent-dark:#0C447C;
+  --green:#0F6E56;--green-light:#E1F5EE;--green-mid:#1D9E75;
+  --amber:#854F0B;--amber-light:#FAEEDA;
+  --red:#993C1D;--red-light:#FAECE7;
+  --purple:#534AB7;--purple-light:#EEEDFE;
+  --teal:#0f7490;--teal-light:#e0f5f9;
+  --text:#1a1a18;--text2:#3a3a36;--text3:#6b6b67;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.13);
+  --bg:#f5f4f0;--white:#fff;
+  --r:8px;--rl:14px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;color:var(--text);background:#eeede9;min-height:100vh;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+
+/* TOPBAR */
+.topbar{background:var(--navy);padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;border-bottom:0.5px solid rgba(255,255,255,.06)}
+.tl{display:flex;align-items:center;gap:14px}
+.t-logo{font-family:'Playfair Display',serif;font-size:18px;color:#fff;font-style:italic;letter-spacing:.2px}
+.t-badge{font-size:10px;padding:3px 11px;border-radius:20px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.4);letter-spacing:.6px;text-transform:uppercase;font-weight:600;border:0.5px solid rgba(255,255,255,.1)}
+.t-right{font-size:12px;color:rgba(255,255,255,.3);white-space:nowrap;letter-spacing:.2px}
+
+/* PAGE */
+.page{max-width:1000px;margin:0 auto;padding:24px 20px 80px}
+
+/* HERO */
+.hero{background:var(--navy);border-radius:var(--rl);padding:32px 32px 28px;margin-bottom:18px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-80px;right:-60px;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(55,138,221,.12) 0%,transparent 70%);pointer-events:none}
+.hero-eyebrow{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.3);font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.hero-eyebrow::before{content:'';width:14px;height:1px;background:rgba(255,255,255,.3)}
+.hero-title{font-family:'Playfair Display',serif;font-size:34px;color:#fff;line-height:1.1;margin-bottom:8px;letter-spacing:-.3px;position:relative}
+.hero-title em{color:#5DCAA5;font-style:italic}
+.hero-sub{font-size:13px;color:rgba(255,255,255,.45);line-height:1.75;max-width:600px;margin-bottom:20px;font-weight:300;position:relative}
+.hero-tags{display:flex;flex-wrap:wrap;gap:6px;position:relative}
+.htag{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500}
+.htag-blue{background:rgba(55,138,221,.15);color:rgba(255,255,255,.6);border:0.5px solid rgba(55,138,221,.2)}
+.htag-teal{background:rgba(29,158,117,.15);color:rgba(255,255,255,.6);border:0.5px solid rgba(29,158,117,.2)}
+.htag-gray{background:rgba(255,255,255,.07);color:rgba(255,255,255,.4);border:0.5px solid rgba(255,255,255,.1)}
+
+/* MODE TOGGLE */
+.mode-toggle{display:flex;background:var(--navy);border-radius:var(--rl);padding:5px;margin-bottom:18px;gap:4px}
+.mode-btn{flex:1;padding:12px 16px;border-radius:10px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px;color:rgba(255,255,255,.35);background:transparent}
+.mode-btn.active-pre{background:var(--accent);color:#fff;box-shadow:0 2px 12px rgba(24,95,165,.3)}
+.mode-btn.active-ex{background:var(--teal);color:#fff;box-shadow:0 2px 12px rgba(15,116,144,.3)}
+.mode-btn:hover:not(.active-pre):not(.active-ex){background:rgba(255,255,255,.06);color:rgba(255,255,255,.7)}
+.mode-icon{font-size:16px}
+.mode-label{display:flex;flex-direction:column;align-items:flex-start;text-align:left}
+.mode-title{font-size:13px;font-weight:600;line-height:1.2}
+.mode-sub{font-size:10px;font-weight:400;opacity:.7;letter-spacing:.2px}
+
+/* COMPARISON BAR */
+.compare-bar{background:linear-gradient(135deg,#0d1e38 0%,#0a1628 100%);border:0.5px solid rgba(255,255,255,.08);border-radius:var(--rl);padding:18px 24px;margin-bottom:16px;display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;box-shadow:0 4px 20px rgba(0,0,0,.15)}
+.compare-bar.visible{display:flex}
+.cb-side{display:flex;align-items:center;gap:16px}
+.cb-label{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,.3);margin-bottom:4px}
+.cb-grade{font-size:36px;font-weight:700;font-family:'Playfair Display',serif;line-height:1}
+.cb-grade-A,.cb-grade-B{color:#4dd99b}
+.cb-grade-C{color:#f5c86b}
+.cb-grade-D,.cb-grade-F{color:#f5836b}
+.cb-metric{font-size:12px;color:rgba(255,255,255,.4);line-height:1.6}
+.cb-metric strong{color:rgba(255,255,255,.8);font-weight:500}
+.cb-divider{width:0.5px;background:rgba(255,255,255,.08);align-self:stretch;flex-shrink:0}
+.cb-verdict{font-size:13px;color:rgba(255,255,255,.4);text-align:center;flex:1;line-height:1.6;padding:0 16px}
+.cb-verdict strong{color:#fff;display:block;font-size:14px;margin-bottom:2px;font-family:'Playfair Display',serif}
+.cb-reset-row{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-bottom:14px}
+.reset-btn{background:transparent;border:0.5px solid var(--border2);border-radius:var(--r);padding:6px 14px;font-size:11px;font-family:'DM Sans',sans-serif;font-weight:600;color:var(--text3);cursor:pointer;transition:.15s;display:flex;align-items:center;gap:5px}
+.reset-btn:hover{background:var(--bg);color:var(--text)}
+.reset-btn.pre-reset{border-color:rgba(24,95,165,.3);color:var(--accent)}
+.reset-btn.pre-reset:hover{background:var(--accent-light)}
+.reset-btn.ex-reset{border-color:rgba(15,116,144,.3);color:var(--teal)}
+.reset-btn.ex-reset:hover{background:var(--teal-light)}
+
+/* BUYER TOGGLE */
+.buyer-toggle{display:flex;background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--r);padding:4px;margin-bottom:13px;gap:3px}
+.buyer-btn{flex:1;padding:8px 12px;border-radius:6px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;transition:.2s;color:var(--text3);background:transparent;text-align:center}
+.buyer-btn.active-pri{background:var(--white);color:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.buyer-btn.active-inv{background:var(--white);color:var(--teal);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.buyer-btn:hover:not(.active-pri):not(.active-inv){background:rgba(255,255,255,.5);color:var(--text)}
+.include-toggle{display:flex;align-items:center;gap:7px;margin-top:8px;font-size:12px;color:var(--text3);cursor:pointer;user-select:none}
+.include-toggle input[type=checkbox]{accent-color:var(--accent);cursor:pointer;width:14px;height:14px}
+.include-toggle.hidden{display:none}
+.optional-badge{font-size:10px;background:#efefed;color:var(--text3);padding:1px 7px;border-radius:10px;font-weight:600;margin-left:4px}
+
+/* NOTICE */
+.notice{border-radius:var(--r);padding:10px 14px;font-size:12px;line-height:1.6;margin-bottom:18px}
+.notice-pre{background:#EBF4FF;border:0.5px solid rgba(24,95,165,.2);color:#0C447C}
+.notice-ex{background:var(--teal-light);border:0.5px solid rgba(15,116,144,.2);color:var(--teal)}
+
+/* LAYOUT */
+.main{display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start}
+.inputs-col{display:flex;flex-direction:column;gap:13px;position:sticky;top:66px}
+.outputs-col{display:flex;flex-direction:column;gap:13px}
+
+/* CARDS */
+.card{background:var(--white);border:0.5px solid var(--border2);border-radius:var(--rl);padding:18px;box-shadow:0 1px 8px rgba(0,0,0,.04);transition:.15s}
+.card-eyebrow{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:13px;padding-bottom:9px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:7px}
+.card-eyebrow::before{content:'';width:10px;height:2px;border-radius:1px;background:var(--text3)}
+.card-eyebrow.teal{color:var(--teal)}
+.card-eyebrow.teal::before{background:var(--teal)}
+.card-eyebrow.accent{color:var(--accent)}
+.card-eyebrow.accent::before{background:var(--accent)}
+
+/* INPUT GROUPS */
+.input-group{margin-bottom:15px}
+.input-group:last-child{margin-bottom:0}
+.ig-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}
+.ig-label{font-size:12px;font-weight:600;color:var(--text)}
+.ig-val{font-size:13px;font-weight:700;min-width:76px;text-align:right}
+.ig-val-pre{color:var(--accent)}
+.ig-val-ex{color:var(--teal)}
+.ig-hint{font-size:11px;color:var(--text3);line-height:1.5;margin-bottom:6px}
+input[type=range]{width:100%;cursor:pointer;height:3px}
+input[type=range].pre{accent-color:var(--accent)}
+input[type=range].ex{accent-color:var(--teal)}
+.ig-sublabel{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:13px}
+.kpi{background:var(--bg);border-radius:var(--r);padding:14px 15px;border:0.5px solid var(--border)}
+.kpi-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-weight:600}
+.kpi-val{font-size:24px;font-weight:600;color:var(--navy);font-family:'Playfair Display',serif;line-height:1}
+.kpi-val.green{color:var(--green)}
+.kpi-val.amber{color:var(--amber)}
+.kpi-val.red{color:#993C1D}
+.kpi-val.teal{color:var(--teal)}
+.kpi-val.sm{font-size:16px;padding-top:3px}
+.kpi-ctx{font-size:11px;color:var(--text3);margin-top:4px;line-height:1.4}
+
+/* DEAL STRENGTH */
+.deal-card{border-radius:var(--rl);padding:20px 24px;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between;gap:14px;transition:.3s;position:relative;overflow:hidden}
+.deal-card::after{content:'';position:absolute;right:-20px;top:-20px;width:120px;height:120px;border-radius:50%;opacity:.08;pointer-events:none}
+.dc-strong{background:var(--green-light);border:0.5px solid rgba(15,110,86,.25)}
+.dc-strong::after{background:var(--green)}
+.dc-borderline{background:var(--amber-light);border:0.5px solid rgba(133,79,11,.25)}
+.dc-borderline::after{background:var(--amber)}
+.dc-weak{background:var(--red-light);border:0.5px solid rgba(153,60,29,.25)}
+.dc-weak::after{background:var(--red)}
+.dc-label{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;margin-bottom:4px}
+.dc-strong .dc-label{color:var(--green)}
+.dc-borderline .dc-label{color:var(--amber)}
+.dc-weak .dc-label{color:var(--red)}
+.dc-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--navy)}
+.dc-sub{font-size:12px;color:var(--text2);margin-top:4px;line-height:1.55;max-width:380px}
+.dc-score{font-family:'Playfair Display',serif;font-size:56px;font-weight:700;line-height:1;flex-shrink:0;position:relative;z-index:1}
+.dc-strong .dc-score{color:var(--green)}
+.dc-borderline .dc-score{color:var(--amber)}
+.dc-weak .dc-score{color:var(--red)}
+
+/* SENS BARS */
+.sens-row{display:flex;align-items:center;gap:9px;margin-bottom:7px;font-size:11px}
+.sens-lbl{width:130px;color:var(--text2);flex-shrink:0}
+.sens-track{flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden;border:0.5px solid var(--border)}
+.sens-fill-pre{height:100%;border-radius:3px;background:var(--accent);transition:width .4s ease}
+.sens-fill-ex{height:100%;border-radius:3px;background:var(--teal);transition:width .4s ease}
+.sens-v{width:48px;text-align:right;color:var(--text2);font-weight:600}
+
+/* INTERP */
+.interp{border-radius:0 var(--r) var(--r) 0;padding:11px 14px;font-size:13px;line-height:1.7;font-style:italic;margin-top:12px}
+.interp-pre{background:var(--accent-light);border-left:3px solid var(--accent);color:var(--accent-dark)}
+.interp-ex{background:var(--teal-light);border-left:3px solid var(--teal);color:var(--teal)}
+
+/* OBJECTIONS */
+.obj-list{display:flex;flex-direction:column;gap:8px}
+.obj-item{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--text2);line-height:1.6;padding:10px 12px;border-radius:var(--r);background:var(--bg)}
+.obj-dot{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.obj-r{background:var(--red)}
+.obj-a{background:var(--amber)}
+.obj-g{background:var(--green)}
+
+/* SECTION SUMMARY */
+.section-summary{background:var(--navy);border-radius:var(--rl);padding:16px 20px;margin-top:12px;border:0.5px solid rgba(255,255,255,.06)}
+.ss-label{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.3);font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.ss-label::before{content:'';width:12px;height:1px;background:rgba(255,255,255,.3)}
+.ss-text{font-size:13px;color:rgba(255,255,255,.8);line-height:1.75}
+.ss-text strong{color:#fff;font-weight:600}
+.ss-green{color:#4dd99b}
+.ss-red{color:#f5836b}
+.ss-amber{color:#f5c86b}
+
+/* CHART */
+.chart-wrap{position:relative;height:230px;margin-top:4px}
+
+/* DIVIDERS */
+.sdiv{display:flex;align-items:center;gap:10px;margin:4px 0 12px}
+.sdiv::before,.sdiv::after{content:'';flex:1;height:0.5px;background:var(--border)}
+.sdiv span{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);font-weight:600;white-space:nowrap}
+
+/* MARKET TIMING */
+.timing-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:13px}
+.timing-card{background:var(--bg);border-radius:var(--r);padding:13px 14px}
+.tc-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.tc-val{font-size:18px;font-weight:600;color:var(--navy);font-family:'Playfair Display',serif;line-height:1}
+.tc-ctx{font-size:11px;color:var(--text3);margin-top:3px;line-height:1.4}
+
+/* FOOTER */
+.footer-note{font-size:11px;color:var(--text3);line-height:1.7;padding:16px 20px;background:var(--white);border-radius:var(--rl);border:0.5px solid var(--border);margin-top:20px}
+.footer-note strong{color:var(--text2);font-weight:600}
+
+/* MOBILE */
+@media(max-width:740px){
+  .topbar{padding:0 16px}
+  .t-right{display:none}
+  .page{padding:14px 12px 60px}
+  .hero{padding:20px 18px}
+  .hero-title{font-size:24px}
+  .mode-btn .mode-sub{display:none}
+  .main{grid-template-columns:1fr}
+  .inputs-col{position:static}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .timing-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:440px){
+  .kpi-grid{grid-template-columns:1fr}
+  .timing-grid{grid-template-columns:1fr}
+  .mode-title{font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tl">
+    <div class="t-logo">Buyer Decision Model</div>
+    <div class="t-badge">Strategy Tool</div>
+  </div>
+  <div class="t-right">Pre-Construction &nbsp;·&nbsp; Existing Homes</div>
+</div>
+
+<div class="page">
+
+  <div class="hero">
+    <div class="hero-eyebrow">Financial Modeling &nbsp;·&nbsp; Real Estate Strategy</div>
+    <h1 class="hero-title">Buyer Decision Model --<br><em>Is the purchase worth it?</em></h1>
+    <p class="hero-sub">Model the real financial tradeoff behind any real estate purchase decision. Compare buying against renting and investing, weigh opportunity cost, and identify exactly what it would take to make the math compelling -- for pre-construction or existing homes.</p>
+    <div class="hero-tags">
+      <span class="htag htag-blue">Pre-construction</span>
+      <span class="htag htag-teal">Existing / resale</span>
+      <span class="htag htag-gray">Opportunity cost</span>
+      <span class="htag htag-gray">Rent vs. buy</span>
+      <span class="htag htag-gray">Market timing</span>
+      <span class="htag htag-gray">Deal strength</span>
+    </div>
+  </div>
+
+  <!-- MODE TOGGLE -->
+  <div class="mode-toggle">
+    <button class="mode-btn active-pre" id="btn-pre" onclick="setMode('pre')">
+      <span class="mode-icon">🏗</span>
+      <span class="mode-label">
+        <span class="mode-title">Pre-Construction</span>
+        <span class="mode-sub">Capital lockup &nbsp;·&nbsp; Wait cost &nbsp;·&nbsp; Opportunity cost</span>
+      </span>
+    </button>
+    <button class="mode-btn" id="btn-ex" onclick="setMode('ex')">
+      <span class="mode-icon">🏡</span>
+      <span class="mode-label">
+        <span class="mode-title">Existing / Resale</span>
+        <span class="mode-sub">Rent vs. buy &nbsp;·&nbsp; Break-even &nbsp;·&nbsp; Market timing</span>
+      </span>
+    </button>
+  </div>
+
+  <!-- NOTICE -->
+  <!-- COMPARISON BAR -->
+  <div class="compare-bar" id="compare-bar">
+    <div class="cb-side">
+      <div>
+        <div class="cb-label">Pre-construction</div>
+        <div class="cb-grade" id="cb-pre-grade">--</div>
+      </div>
+      <div class="cb-metric" id="cb-pre-metric">Run the pre-construction<br>scenario to see results</div>
+    </div>
+    <div class="cb-divider"></div>
+    <div class="cb-verdict" id="cb-verdict">Configure both tabs to compare</div>
+    <div class="cb-divider"></div>
+    <div class="cb-side">
+      <div class="cb-metric" id="cb-ex-metric" style="text-align:right">Run the existing home<br>scenario to see results</div>
+      <div>
+        <div class="cb-label" style="text-align:right">Existing / Resale</div>
+        <div class="cb-grade" id="cb-ex-grade" style="text-align:right">--</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESET BUTTONS -->
+  <div class="cb-reset-row">
+    <button class="reset-btn pre-reset" id="reset-pre-btn" onclick="resetTab('pre')" style="display:none">&#8635; Reset Pre-Construction</button>
+    <button class="reset-btn ex-reset" id="reset-ex-btn" onclick="resetTab('ex')" style="display:none">&#8635; Reset Existing</button>
+  </div>
+
+  <!-- BUYER TYPE TOGGLE (pre-construction only) -->
+  <div id="buyer-toggle-wrap">
+    <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.8px">Who is this purchase for?</div>
+    <div class="buyer-toggle">
+      <button class="buyer-btn active-pri" id="btn-pri-res" onclick="setBuyerType('primary')">&#127968; Primary Residence</button>
+      <button class="buyer-btn" id="btn-inv" onclick="setBuyerType('investment')">&#128200; Investment Property</button>
+    </div>
+  </div>
+
+  <div class="notice notice-pre" id="notice">
+    &#9432;&nbsp; <strong>Pre-construction mode:</strong> Models capital lockup, opportunity cost on your deposit, wait cost, and whether expected appreciation justifies the commitment vs. keeping capital in a HYSA or ETF.
+  </div>
+
+  <div class="main">
+
+    <!-- ═══════════ SHARED + MODE INPUTS ═══════════ -->
+    <div class="inputs-col" id="inputs-col">
+
+      <!-- SHARED INPUTS -->
+      <div class="card">
+        <div class="card-eyebrow accent" id="input-eyebrow-1">Purchase</div>
+
+        <div class="input-group">
+          <div class="ig-header"><div class="ig-label">Home Price</div><div class="ig-val ig-val-pre" id="v-price">$750,000</div></div>
+          <div class="ig-hint" id="hint-price">Unit price for this pre-construction purchase.</div>
+          <input type="range" class="pre" min="300000" max="10000000" step="50000" value="750000" id="s-price" oninput="calc()">
+          <div class="ig-sublabel"><span>$300k</span><span>$10M</span></div>
+        </div>
+
+        <div class="input-group">
+          <div class="ig-header"><div class="ig-label">Deposit / Down Payment</div><div class="ig-val ig-val-pre" id="v-deposit">20%</div></div>
+          <div class="ig-hint" id="hint-deposit">Capital tied up before or at closing.</div>
+          <input type="range" class="pre" min="5" max="50" step="1" value="20" id="s-deposit" oninput="calc()">
+          <div class="ig-sublabel"><span>5%</span><span>50%</span></div>
+        </div>
+
+        <div class="input-group">
+          <div class="ig-header"><div class="ig-label" id="lbl-discount">Price Incentive / Discount</div><div class="ig-val ig-val-pre" id="v-discount">0%</div></div>
+          <div class="ig-hint" id="hint-discount">Test what concession changes the math.</div>
+          <input type="range" class="pre" min="0" max="15" step="0.5" value="0" id="s-discount" oninput="calc()">
+          <div class="ig-sublabel"><span>0%</span><span>15%</span></div>
+        </div>
+      </div>
+
+      <!-- PRE-CONSTRUCTION ONLY: TIMELINE -->
+      <div class="card" id="card-timeline">
+        <div class="card-eyebrow accent">Timeline</div>
+        <div class="input-group">
+          <div class="ig-header"><div class="ig-label">Months Until Completion</div><div class="ig-val ig-val-pre" id="v-months">36 mo</div></div>
+          <div class="ig-hint">Time from contract to closing / move-in.</div>
+          <input type="range" class="pre" min="1" max="72" step="1" value="36" id="s-months" oninput="calc()">
+          <div class="ig-sublabel"><span>1 mo</span><span>72 mo</span></div>
+        </div>
+        <div class="input-group">
+          <div class="ig-header">
+            <div class="ig-label">Housing Cost / Month While Waiting<span class="optional-badge" id="housing-badge" style="display:none">Optional</span></div>
+            <div class="ig-val ig-val-pre" id="v-rent-pre">$3,200</div>
+          </div>
+          <div class="ig-hint" id="hint-housing">What you pay for rent or your current mortgage while waiting for this property to complete. For primary residence buyers this is a real cost of waiting. For investment buyers it may not apply.</div>
+          <input type="range" class="pre" min="0" max="8000" step="100" value="3200" id="s-rent-pre" oninput="calc()">
+          <div class="ig-sublabel"><span>$0</span><span>$8k</span></div>
+          <label class="include-toggle hidden" id="include-toggle-wrap">
+            <input type="checkbox" id="include-housing" onchange="calc()">
+            <span>Include in score and wait cost calculation</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- EXISTING ONLY: RENT COMPARISON -->
+      <div class="card" id="card-rent" style="display:none">
+        <div class="card-eyebrow teal">Rent Alternative</div>
+        <div class="input-group">
+          <div class="ig-header"><div class="ig-label">Comparable Monthly Rent</div><div class="ig-val ig-val-ex" id="v-rent-ex">$3,200</div></div>
+          <div class="ig-hint">What would you pay to rent a comparable home?</div>
+          <input type="range" class="ex" min="0" max="25000" step="500" value="3200" id="s-rent-ex" oninput="calc()">
+          <div class="ig-sublabel"><span>$0</span><span>$25k/mo</span></div>
+        </div>
+        <div class="input-group">
+          <div class="ig-header"><div class="ig-label">Annual Rent Increase</div><div class="ig-val ig-val-ex" id="v-rent-rise">3.0%</div></div>
+          <div class="ig-hint">Expected annual rent escalation in this market.</div>
+          <input type="range" class="ex" min="0" max="80" step="5" value="30" id="s-rent-rise" oninput="calc()">
+          <div class="ig-sublabel"><span>0%</span><span>8%</span></div>
+        </div>
+      </div>
+
+      <!-- RATES & RETURNS -->
+      <div class="card">
+        <div class="card-eyebrow accent" id="input-eyebrow-2">Rates &amp; Returns</div>
+        <div class="input-group">
+          <div class="ig-header"><div class="ig-label">Mortgage Rate</div><div class="ig-val ig-val-pre" id="v-rate">6.5%</div></div>
+          <div class="ig-hint">Current or expected rate at closing.</div>
+          <input type="range" class="pre" min="30" max="100" step="1" value="65" id="s-rate" oninput="calc()">
+          <div class="ig-sublabel"><span>3%</span><span>10%</span></div>
+        </div>
+        <div class="input-group">
+          <div class="ig-header"><div class="ig-label">Alt. Investment Return / yr</div><div class="ig-val ig-val-pre" id="v-altret">7.0%</div></div>
+          <div class="ig-hint">What the down payment could earn in a HYSA, ETF, or index fund.</div>
+          <input type="range" class="pre" min="10" max="150" step="5" value="70" id="s-altret" oninput="calc()">
+          <div class="ig-sublabel"><span>1%</span><span>15%</span></div>
+        </div>
+        <div class="input-group">
+          <div class="ig-header"><div class="ig-label">Expected Appreciation / yr</div><div class="ig-val ig-val-pre" id="v-appr">3.5%</div></div>
+          <div class="ig-hint">Use conservative values. Hawaii avg: 3-5% historically.</div>
+          <input type="range" class="pre" min="0" max="100" step="5" value="35" id="s-appr" oninput="calc()">
+          <div class="ig-sublabel"><span>0%</span><span>10%</span></div>
+        </div>
+      </div>
+
+      <!-- OWNERSHIP COSTS -->
+      <div class="card">
+        <div class="card-eyebrow accent" id="input-eyebrow-3">Ownership Costs</div>
+        <div class="input-group">
+          <div class="ig-header"><div class="ig-label">HOA + Maintenance / Month</div><div class="ig-val ig-val-pre" id="v-hoa">$750</div></div>
+          <div class="ig-hint" style="color:var(--text3);font-size:11px">Starts at closing -- does not affect wait cost. Used in the buy vs. invest comparison after move-in.</div>
+          <input type="range" class="pre" min="0" max="3000" step="50" value="750" id="s-hoa" oninput="calc()">
+          <div class="ig-sublabel"><span>$0</span><span>$3k</span></div>
+        </div>
+        <div class="input-group">
+          <div class="ig-header"><div class="ig-label">Tax + Insurance / Month</div><div class="ig-val ig-val-pre" id="v-tax">$650</div></div>
+          <div class="ig-hint" style="color:var(--text3);font-size:11px">Starts at closing -- does not affect wait cost. Used in the buy vs. invest comparison after move-in.</div>
+          <input type="range" class="pre" min="0" max="3000" step="50" value="650" id="s-tax" oninput="calc()">
+          <div class="ig-sublabel"><span>$0</span><span>$3k</span></div>
+        </div>
+        <div class="input-group">
+          <div class="ig-header"><div class="ig-label">Holding Period</div><div class="ig-val ig-val-pre" id="v-hold">5 yr</div></div>
+          <div class="ig-hint">How long do you plan to own after move-in?</div>
+          <input type="range" class="pre" min="1" max="20" step="1" value="5" id="s-hold" oninput="calc()">
+          <div class="ig-sublabel"><span>1 yr</span><span>20 yr</span></div>
+        </div>
+      </div>
+
+      <!-- MARKET TIMING (existing only) -->
+      <div class="card" id="card-timing" style="display:none">
+        <div class="card-eyebrow teal">Market Timing</div>
+        <div class="input-group">
+          <div class="ig-header"><div class="ig-label">Expected Rate Change / yr</div><div class="ig-val ig-val-ex" id="v-rate-chg">-0.5%</div></div>
+          <div class="ig-hint">What do you think mortgage rates will do over the next year? If rates drop, waiting could lower your monthly payment -- but prices may rise at the same time. If rates rise, every month you wait means a more expensive mortgage on the same home. The chart below shows exactly how your monthly payment changes depending on when you buy.</div>
+          <input type="range" class="ex" min="-30" max="30" step="5" value="-5" id="s-rate-chg" oninput="calc()">
+          <div class="ig-sublabel"><span>-3%</span><span>+3%</span></div>
+        </div>
+        <div class="input-group">
+          <div class="ig-header"><div class="ig-label">Expected Price Change if Wait 1 yr</div><div class="ig-val ig-val-ex" id="v-price-chg">+3%</div></div>
+          <div class="ig-hint">What do you think will happen to this home's price -- or the market in general -- if you wait 12 months before buying? If prices go up, waiting means paying more for the same home. If prices drop, waiting saves you on the purchase price. Combined with the rate slider above, this tells you whether buying now or waiting is the smarter financial move.</div>
+          <input type="range" class="ex" min="-100" max="100" step="10" value="30" id="s-price-chg" oninput="calc()">
+          <div class="ig-sublabel"><span>-10%</span><span>+10%</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═══════════ OUTPUTS ═══════════ -->
+    <div class="outputs-col" id="outputs-col">
+      <!-- populated by setMode() + calc() -->
+    </div>
+
+  </div>
+
+  <div class="footer-note">
+    <strong>Disclaimer:</strong> This tool is provided for informational and educational purposes only. It does not constitute financial, investment, legal, or real estate advice. All outputs are estimates based on user-entered assumptions and simplified financial models. This tool does not account for all variables that affect real estate decisions, including but not limited to mortgage qualification, actual tax obligations, closing costs, HOA escalation, insurance changes, capital gains treatment, or individual financial circumstances. Past market performance does not guarantee future results. Always consult a licensed financial advisor, mortgage professional, and real estate agent before making any real estate or investment decision. By using this tool you acknowledge that the results are for illustrative purposes only.
+  </div>
+</div>
+
+<script>
+var currentMode='pre';
+var charts={};
+var preHasRun=false;
+var exHasRun=false;
+var preState={price:750000,deposit:20,discount:0,months:36,rentPre:3200,rate:65,altret:70,appr:35,hoa:750,tax:650,hold:5,comp:2,ent:2};
+var exState={price:750000,deposit:20,discount:0,rentEx:3200,rentRise:30,rate:65,altret:70,appr:35,hoa:750,tax:650,hold:5,rateChg:-5,priceChg:30};
+var preGrade='--';
+var exGrade='--';
+var preMetric='';
+var exMetric='';
+
+function fmt(n){
+  var abs=Math.abs(n);
+  if(abs>=1000000)return (n<0?'-$':'$')+(abs/1000000).toFixed(1)+'M';
+  if(abs>=1000)return (n<0?'-$':'$')+Math.round(abs/1000)+'k';
+  return (n<0?'-$':'$')+Math.round(abs);
+}
+function fmtFull(n){
+  return (n<0?'-$':'$')+Math.abs(Math.round(n)).toLocaleString();
+}
+function destroyChart(id){
+  if(charts[id]){charts[id].destroy();delete charts[id];}
+}
+
+function saveState(){
+  if(currentMode==='pre'){
+    var ids=['price','deposit','discount','months','rent-pre','rate','altret','appr','hoa','tax','hold'];
+    var keys=['price','deposit','discount','months','rentPre','rate','altret','appr','hoa','tax','hold'];
+    ids.forEach(function(id,i){ var el=document.getElementById('s-'+id); if(el) preState[keys[i]]=+el.value; });
+  } else {
+    var ids=['price','deposit','discount','rent-ex','rent-rise','rate','altret','appr','hoa','tax','hold','rate-chg','price-chg'];
+    var keys=['price','deposit','discount','rentEx','rentRise','rate','altret','appr','hoa','tax','hold','rateChg','priceChg'];
+    ids.forEach(function(id,i){ var el=document.getElementById('s-'+id); if(el) exState[keys[i]]=+el.value; });
+  }
+}
+
+function restoreState(){
+  if(currentMode==='pre'){
+    var ids=['price','deposit','discount','months','rent-pre','rate','altret','appr','hoa','tax','hold'];
+    var keys=['price','deposit','discount','months','rentPre','rate','altret','appr','hoa','tax','hold'];
+    ids.forEach(function(id,i){ var el=document.getElementById('s-'+id); if(el) el.value=preState[keys[i]]; });
+  } else {
+    var ids=['price','deposit','discount','rent-ex','rent-rise','rate','altret','appr','hoa','tax','hold','rate-chg','price-chg'];
+    var keys=['price','deposit','discount','rentEx','rentRise','rate','altret','appr','hoa','tax','hold','rateChg','priceChg'];
+    ids.forEach(function(id,i){ var el=document.getElementById('s-'+id); if(el) el.value=exState[keys[i]]; });
+  }
+}
+
+function resetTab(tab){
+  if(tab==='pre'){
+    preState={price:750000,deposit:20,discount:0,months:36,rentPre:3200,rate:65,altret:70,appr:35,hoa:750,tax:650,hold:5,comp:2,ent:2};
+    preHasRun=false;
+    preGrade='--';
+    preMetric='';
+    if(currentMode==='pre') restoreState();
+  } else {
+    exState={price:750000,deposit:20,discount:0,rentEx:3200,rentRise:30,rate:65,altret:70,appr:35,hoa:750,tax:650,hold:5,rateChg:-5,priceChg:30};
+    exHasRun=false;
+    exGrade='--';
+    exMetric='';
+    if(currentMode==='ex') restoreState();
+  }
+  updateCompareBar();
+  if((tab==='pre'&&currentMode==='pre')||(tab==='ex'&&currentMode==='ex')) calc();
+}
+
+function updateCompareBar(){
+  var bar=document.getElementById('compare-bar');
+  var preReset=document.getElementById('reset-pre-btn');
+  var exReset=document.getElementById('reset-ex-btn');
+  // show reset buttons once a tab has been interacted with
+  if(preReset) preReset.style.display=preHasRun?'flex':'none';
+  if(exReset) exReset.style.display=exHasRun?'flex':'none';
+  // only show compare bar once both have run
+  if(!preHasRun||!exHasRun){ if(bar) bar.classList.remove('visible'); return; }
+  if(bar) bar.classList.add('visible');
+  // update grades
+  var pg=document.getElementById('cb-pre-grade');
+  var eg=document.getElementById('cb-ex-grade');
+  if(pg){ pg.textContent=preGrade; pg.className='cb-grade cb-grade-'+preGrade; }
+  if(eg){ eg.textContent=exGrade; eg.className='cb-grade cb-grade-'+exGrade; }
+  // update metrics
+  var pm=document.getElementById('cb-pre-metric');
+  var em=document.getElementById('cb-ex-metric');
+  if(pm) pm.innerHTML=preMetric;
+  if(em) em.innerHTML=exMetric;
+  // verdict
+  var gradeOrder={'A':5,'B':4,'C':3,'D':2,'F':1};
+  var pv=gradeOrder[preGrade]||0;
+  var ev=gradeOrder[exGrade]||0;
+  var verdict='';
+  if(pv>ev) verdict='<strong>Pre-construction</strong> scores stronger on the financial model.';
+  else if(ev>pv) verdict='<strong>Existing home</strong> scores stronger on the financial model.';
+  else verdict='Both options score equally. The decision comes down to personal fit and timing.';
+  var vEl=document.getElementById('cb-verdict');
+  if(vEl) vEl.innerHTML=verdict;
+}
+
+function setBuyerType(type){
+  var isInv = type==='investment';
+  document.getElementById('btn-pri-res').className='buyer-btn'+(isInv?'':' active-pri');
+  document.getElementById('btn-inv').className='buyer-btn'+(isInv?' active-inv':'');
+  // show/hide optional badge and include toggle
+  var badge=document.getElementById('housing-badge');
+  var toggleWrap=document.getElementById('include-toggle-wrap');
+  if(badge) badge.style.display=isInv?'inline':'none';
+  if(toggleWrap) toggleWrap.className='include-toggle'+(isInv?'':' hidden');
+  // update hint
+  var hint=document.getElementById('hint-housing');
+  if(hint){
+    hint.textContent=isInv
+      ? 'Investment buyers: this slider is optional. If you are carrying a housing cost during the wait period that is directly tied to this purchase, check the box below to include it in the score. Otherwise it is excluded.'
+      : 'What you pay for rent or your current mortgage while waiting for this property to complete. This is a real cost of waiting for primary residence buyers.';
+  }
+  calc();
+}
+
+function setMode(mode){
+  saveState();
+  currentMode=mode;
+  var isPre=mode==='pre';
+
+  // toggle buttons
+  document.getElementById('btn-pre').className='mode-btn'+(isPre?' active-pre':'');
+  document.getElementById('btn-ex').className='mode-btn'+(isPre?'':' active-ex');
+
+  // notice
+  var n=document.getElementById('notice');
+  n.className='notice '+(isPre?'notice-pre':'notice-ex');
+  n.innerHTML=isPre
+    ? '&#9432;&nbsp; <strong>Pre-construction mode:</strong> Models capital lockup, opportunity cost on your deposit, wait cost, and whether expected appreciation justifies the commitment vs. keeping capital in a HYSA or ETF.'
+    : '&#9432;&nbsp; <strong>Existing home mode:</strong> You found the home. Now figure out if buying it actually beats renting and investing the difference -- and whether the timing is right.';
+
+  // show/hide timeline vs rent card
+  document.getElementById('card-timeline').style.display=isPre?'block':'none';
+  var btw=document.getElementById('buyer-toggle-wrap');
+  if(btw) btw.style.display=isPre?'block':'none';
+  document.getElementById('card-rent').style.display=isPre?'none':'block';
+  document.getElementById('card-timing').style.display=isPre?'none':'block';
+
+  // update input accent colors
+  var vals=document.querySelectorAll('.ig-val');
+  vals.forEach(function(el){
+    el.className='ig-val '+(isPre?'ig-val-pre':'ig-val-ex');
+  });
+  var ranges=document.querySelectorAll('input[type=range]');
+  ranges.forEach(function(el){el.className=isPre?'pre':'ex';});
+
+  var ey1=document.getElementById('input-eyebrow-1');
+  var ey2=document.getElementById('input-eyebrow-2');
+  var ey3=document.getElementById('input-eyebrow-3');
+  if(isPre){
+    ey1.className='card-eyebrow accent';
+    ey2.className='card-eyebrow accent';
+    ey3.className='card-eyebrow accent';
+    document.getElementById('lbl-discount').textContent='Price Incentive / Discount';
+    document.getElementById('hint-price').textContent='Unit price for this pre-construction purchase.';
+    document.getElementById('hint-deposit').textContent='Capital tied up before or at closing.';
+    document.getElementById('hint-discount').textContent='Test what concession changes the math.';
+  } else {
+    ey1.className='card-eyebrow teal';
+    ey2.className='card-eyebrow teal';
+    ey3.className='card-eyebrow teal';
+    document.getElementById('lbl-discount').textContent='Seller Concession / Price Reduction';
+    document.getElementById('hint-price').textContent='Listing or negotiated purchase price.';
+    document.getElementById('hint-deposit').textContent='Down payment -- capital leaving your investment portfolio.';
+    document.getElementById('hint-discount').textContent='Any seller concession or negotiated reduction.';
+  }
+
+  // destroy all charts
+  ['waitChart','compareChart','rentBuyChart','timingChart'].forEach(destroyChart);
+
+  restoreState();
+  calc();
+}
+
+function calc(){
+  if(currentMode==='pre') calcPre();
+  else calcEx();
+}
+
+/* ══════════════════════════════════════
+   PRE-CONSTRUCTION CALC
+══════════════════════════════════════ */
+function calcPre(){
+  var price    = +document.getElementById('s-price').value;
+  var depPct   = +document.getElementById('s-deposit').value/100;
+  var discPct  = +document.getElementById('s-discount').value/100;
+  var months   = +document.getElementById('s-months').value;
+  var isInvestment = document.getElementById('btn-inv') && document.getElementById('btn-inv').classList.contains('active-inv');
+  var includeHousing = !isInvestment || (document.getElementById('include-housing') && document.getElementById('include-housing').checked);
+  var rent     = includeHousing ? +document.getElementById('s-rent-pre').value : 0;
+  var ratePct  = +document.getElementById('s-rate').value/10;
+  var altRetPct= +document.getElementById('s-altret').value/10;
+  var apprPct  = +document.getElementById('s-appr').value/10;
+  var hoa      = +document.getElementById('s-hoa').value;
+  var taxIns   = +document.getElementById('s-tax').value;
+  var hold     = +document.getElementById('s-hold').value;
+  var years    = months/12;
+
+  document.getElementById('v-price').textContent   = '$'+price.toLocaleString();
+  document.getElementById('v-deposit').textContent = depPct*100+'%';
+  document.getElementById('v-discount').textContent= discPct*100+'%';
+  document.getElementById('v-months').textContent  = months+' mo';
+  document.getElementById('v-rent-pre').textContent= '$'+rent.toLocaleString();
+  document.getElementById('v-rate').textContent    = ratePct.toFixed(1)+'%';
+  document.getElementById('v-altret').textContent  = altRetPct.toFixed(1)+'%';
+  document.getElementById('v-appr').textContent    = apprPct.toFixed(1)+'%';
+  document.getElementById('v-hoa').textContent     = '$'+hoa.toLocaleString();
+  document.getElementById('v-tax').textContent     = '$'+taxIns.toLocaleString();
+  document.getElementById('v-hold').textContent    = hold+' yr';
+
+  var adjPrice  = price*(1-discPct);
+  var deposit   = adjPrice*depPct;
+  var oppCost   = deposit*(Math.pow(1+altRetPct/100,years)-1);
+  var rentTotal = rent*months;
+  var waitCost  = oppCost+rentTotal;
+  var apprGain  = adjPrice*(Math.pow(1+apprPct/100,years)-1);
+  var net       = apprGain-waitCost;
+
+  var breakEvenRate=0;
+  for(var r=0;r<0.5;r+=0.0001){
+    if(adjPrice*(Math.pow(1+r,years)-1)>=waitCost){breakEvenRate=r;break;}
+  }
+  var incentiveNeeded=Math.max(0,waitCost-apprGain);
+  var timelineThreshold=months;
+  for(var m=12;m<=72;m++){
+    var wc=deposit*(Math.pow(1+altRetPct/100,m/12)-1)+rent*m;
+    var ag=adjPrice*(Math.pow(1+apprPct/100,m/12)-1);
+    if(wc>ag){timelineThreshold=m;break;}
+  }
+
+  // Score as % of price so it works from $300k to $10M
+  var netRatio = net / adjPrice;
+  // Adjusted score: penalize timeline lockup (1.5%/yr) so longer waits hurt even at high appreciation
+  // This reflects that every extra year of locked capital has a real opportunity cost
+  var timelinePenalty = (months/12) * 0.015;
+  var adjRatio = netRatio - timelinePenalty;
+  var ratespread = apprPct - altRetPct; // positive = appreciation beats stocks
+  var score = adjRatio>0.03?3:adjRatio>-0.02?2.5:adjRatio>-0.08?2:adjRatio>-0.18?1.5:1;
+  var dsInfo = getDealStrength(score,'pre');
+  preGrade=dsInfo.score;
+  preMetric='Net position: <strong>'+fmtFull(net)+'</strong><br>Break-even: <strong>'+(breakEvenRate*100).toFixed(1)+'%/yr appr.</strong>';
+  updateCompareBar();
+  var interpText = getInterpPre(score,net,months,altRetPct,deposit,apprPct,breakEvenRate);
+  var objItems = getObjPre(net,breakEvenRate,apprPct,months,altRetPct,deposit,score);
+  var buyerType = adjRatio>0.03?{t:'Either',c:'green'}:adjRatio>-0.02?{t:'End-user',c:'amber'}:{t:'Unlikely',c:'red'};
+
+  var s1=Math.min(96,Math.round(40+apprPct*8));
+  var s2=Math.min(96,Math.round(30+altRetPct*6));
+  var s3=Math.min(96,Math.round(20+months*0.9));
+  var s4=Math.min(96,Math.round(20+depPct*100*0.9));
+  var s5=Math.min(96,Math.round(15+rent/80));
+
+  var netClass = adjRatio>0.03?'green':adjRatio>-0.02?'amber':'red';
+  var waitNote = 'You pay '+fmt(rentTotal)+' in housing + lose '+fmt(oppCost)+' in investment returns while waiting';
+
+  document.getElementById('outputs-col').innerHTML =
+    dealStrengthHTML(dsInfo)+
+    '<div class="card">'+
+      '<div class="card-eyebrow accent">What this purchase really costs the buyer</div>'+
+      '<div style="font-size:12px;color:var(--text3);margin-bottom:13px;line-height:1.6">Beyond the purchase price -- what the buyer gives up, what they stand to gain, and whether the math works in their favor.</div>'+
+      '<div class="kpi-grid">'+
+        kpi('Purchase Price',fmt(adjPrice),'','After any incentive or discount')+
+        kpi('Cash Tied Up',fmt(deposit),'amber','Locked in -- unavailable to invest elsewhere')+
+        kpi('Cost of the Wait',fmt(waitCost),'red',waitNote)+
+        kpi('Expected Home Gain',fmt(apprGain),'green','Home value increase by completion at '+apprPct.toFixed(1)+'%/yr')+
+        kpi('Net Position',fmtFull(net),netClass,'Gain minus everything it cost to wait')+
+        kpi('Appreciation Needed',(breakEvenRate*100).toFixed(1)+'%/yr','','Just to break even vs. staying invested')+
+      '</div>'+
+      '<div style="background:var(--bg);border-radius:var(--r);padding:12px 14px;margin-bottom:12px;font-size:12px;color:var(--text2);line-height:1.7">'+
+        '<strong>Plain English:</strong> The buyer locks up '+fmt(deposit)+' for '+months+' month'+(months===1?'':'s')+'. That cash sitting idle costs roughly '+fmt(oppCost)+' in foregone investment returns.'+(rentTotal>0?' They are also paying '+fmt(rentTotal)+' in housing costs during the wait.':' Housing cost during the wait is not included (investment buyer).')+' Total cost to wait: <strong>'+fmt(waitCost)+'</strong>. The home needs to appreciate by at least <strong>'+(breakEvenRate*100).toFixed(1)+'%/yr</strong> just to break even -- compared to keeping the money in a HYSA or ETF.'+
+      '</div>'+
+      '<div class="sdiv"><span>What moves the grade most</span></div>'+
+      sensRow('Appreciation rate',s1,'pre')+
+      sensRow('Alt. investment return',s2,'pre')+
+      sensRow('Timeline length',s3,'pre')+
+      sensRow('Deposit size',s4,'pre')+
+      sensRow('Housing cost / month',s5,'pre')+
+      '<div class="interp interp-pre">'+interpText+'</div>'+
+    '</div>'+
+    '<div class="card">'+
+      '<div class="card-eyebrow accent">Wait cost vs. expected gain</div>'+
+      '<div class="chart-wrap"><canvas id="waitChart"></canvas></div>'+
+      summaryBox('What this means for you',
+        (apprGain>waitCost
+          ? 'Your expected home gain of <strong class="ss-green">'+fmt(apprGain)+'</strong> outpaces the total cost of waiting (<strong>'+fmt(waitCost)+'</strong>). The purchase is starting in positive territory by <strong class="ss-green">'+fmt(apprGain-waitCost)+'</strong>.'
+          : 'Your total cost of waiting is <strong class="ss-red">'+fmt(waitCost)+'</strong> -- made up of <strong>'+fmt(oppCost)+'</strong> in lost investment returns and <strong>'+(rentTotal>0?fmt(rentTotal)+' in housing costs':'$0 in housing costs (investment buyer)')+'</strong>. The home is only expected to gain <strong>'+fmt(apprGain)+'</strong> in that time. You are starting <strong class="ss-red">'+fmt(waitCost-apprGain)+'</strong> in the hole before you even move in.'
+        )
+      )+
+    '</div>'+
+    '<div class="card">'+
+      '<div class="card-eyebrow accent">Buy vs. keep deposit invested</div>'+
+      '<div class="chart-wrap"><canvas id="compareChart"></canvas></div>'+
+      summaryBox('What this means for you',
+        (function(){
+          var investedAtHold = Math.round(deposit*Math.pow(1+altRetPct/100,hold));
+          var homeValAtHold  = Math.round(adjPrice*Math.pow(1+apprPct/100,hold));
+          var diff = homeValAtHold - investedAtHold;
+          if(diff>0){
+            return 'After <strong>'+hold+' year'+(hold===1?'':'s')+'</strong>, your home is projected to be worth <strong class="ss-green">'+fmt(homeValAtHold)+'</strong>. If you had kept your <strong>'+fmt(deposit)+'</strong> deposit invested at <strong>'+altRetPct.toFixed(1)+'%/yr</strong>, it would have grown to <strong>'+fmt(investedAtHold)+'</strong>. Buying comes out <strong class="ss-green">'+fmt(diff)+'</strong> ahead on this comparison.';
+          } else {
+            return 'After <strong>'+hold+' year'+(hold===1?'':'s')+'</strong>, your home is projected to be worth <strong>'+fmt(homeValAtHold)+'</strong>. But your <strong>'+fmt(deposit)+'</strong> deposit kept invested at <strong>'+altRetPct.toFixed(1)+'%/yr</strong> would have grown to <strong class="ss-green">'+fmt(investedAtHold)+'</strong>. Keeping your money invested comes out <strong class="ss-red">'+fmt(Math.abs(diff))+'</strong> ahead on this comparison -- before factoring in the lifestyle value of ownership.';
+          }
+        })()
+      )+
+    '</div>'+
+    '<div class="card">'+
+      '<div class="card-eyebrow accent">What would make this compelling?</div>'+
+      '<div class="kpi-grid">'+
+        kpi('Incentive needed',fmt(incentiveNeeded),'','To reach break-even on wait cost')+
+        kpi('Appreciation needed',(breakEvenRate*100).toFixed(1)+'%/yr','','To justify the financial commitment')+
+        kpi('Timeline threshold',timelineThreshold+' mo','','Max wait before math breaks down')+
+        kpi('Best buyer type',buyerType.t,buyerType.c,'Investor vs. end-user fit')+
+      '</div>'+
+      summaryBox('What would change the grade',
+        (function(){
+          var parts=[];
+          if(incentiveNeeded>0){
+            parts.push('A price reduction of <strong class="ss-amber">'+fmt(incentiveNeeded)+'</strong> would bring this deal to break-even.');
+          }
+          parts.push('The home needs to appreciate at <strong class="ss-amber">'+(breakEvenRate*100).toFixed(1)+'%/yr</strong> just to cover your cost of waiting -- compared to Hawaii historical average of 3-5%.');
+          if(timelineThreshold<months){
+            parts.push('If the timeline were <strong class="ss-green">'+timelineThreshold+' months</strong> instead of '+months+', the math would start working in your favor.');
+          } else {
+            parts.push('Even at the maximum modeled timeline of 72 months, the deal can work if appreciation stays strong.');
+          }
+          parts.push('Best suited for a <strong>'+buyerType.t+'</strong> buyer -- '+(buyerType.t==='Either'?'the financial case is strong enough for both investor and lifestyle buyers.':buyerType.t==='End-user'?'an an investor-focused buyer will likely find better returns elsewhere.':'the financial case is difficult to make for any buyer type at current assumptions.'));
+          return parts.join(' ');
+        })()
+      )+
+    '</div>'+
+    '<div class="card">'+
+      '<div class="card-eyebrow accent">Buyer objection summary</div>'+
+      '<div class="obj-list">'+objItems+'</div>'+
+    '</div>';
+
+  buildWaitChart(oppCost,rentTotal,apprGain);
+  buildCompareChart(deposit,altRetPct,adjPrice,apprPct,hold,hoa,taxIns,ratePct,depPct);
+}
+
+/* ══════════════════════════════════════
+   EXISTING HOME CALC
+══════════════════════════════════════ */
+function calcEx(){
+  var price    = +document.getElementById('s-price').value;
+  var depPct   = +document.getElementById('s-deposit').value/100;
+  var discPct  = +document.getElementById('s-discount').value/100;
+  var rentMo   = +document.getElementById('s-rent-ex').value;
+  var rentRise = +document.getElementById('s-rent-rise').value/10;
+  var ratePct  = +document.getElementById('s-rate').value/10;
+  var altRetPct= +document.getElementById('s-altret').value/10;
+  var apprPct  = +document.getElementById('s-appr').value/10;
+  var hoa      = +document.getElementById('s-hoa').value;
+  var taxIns   = +document.getElementById('s-tax').value;
+  var hold     = +document.getElementById('s-hold').value;
+  var rateChg  = +document.getElementById('s-rate-chg').value/10;
+  var priceChg = +document.getElementById('s-price-chg').value/10;
+
+  document.getElementById('v-price').textContent   = '$'+price.toLocaleString();
+  document.getElementById('v-deposit').textContent = depPct*100+'%';
+  document.getElementById('v-discount').textContent= discPct*100+'%';
+  document.getElementById('v-rent-ex').textContent = '$'+rentMo.toLocaleString();
+  document.getElementById('v-rent-rise').textContent=(rentRise).toFixed(1)+'%';
+  document.getElementById('v-rate').textContent    = ratePct.toFixed(1)+'%';
+  document.getElementById('v-altret').textContent  = altRetPct.toFixed(1)+'%';
+  document.getElementById('v-appr').textContent    = apprPct.toFixed(1)+'%';
+  document.getElementById('v-hoa').textContent     = '$'+hoa.toLocaleString();
+  document.getElementById('v-tax').textContent     = '$'+taxIns.toLocaleString();
+  document.getElementById('v-hold').textContent    = hold+' yr';
+  document.getElementById('v-rate-chg').textContent=(rateChg>=0?'+':'')+rateChg.toFixed(1)+'%';
+  document.getElementById('v-price-chg').textContent=(priceChg>=0?'+':'')+priceChg.toFixed(1)+'%';
+
+  var adjPrice   = price*(1-discPct);
+  var downPmt    = adjPrice*depPct;
+  var loanAmt    = adjPrice-downPmt;
+  var monthlyRate= ratePct/100/12;
+  var n360       = 360;
+  var monthlyMtg = monthlyRate===0?loanAmt/n360:loanAmt*(monthlyRate*Math.pow(1+monthlyRate,n360))/(Math.pow(1+monthlyRate,n360)-1);
+  var monthlyCost= monthlyMtg+hoa+taxIns;
+
+  // Year-by-year rent vs buy
+  var breakEvenYr=null;
+  var cumBuyCost=downPmt; // include opportunity cost of down
+  var cumRentCost=0;
+  var rentNow=rentMo;
+  for(var yr=1;yr<=hold;yr++){
+    var annualMtg=monthlyMtg*12;
+    var annualOwn=(hoa+taxIns)*12;
+    var annualBuy=annualMtg+annualOwn;
+    var annualRent=rentNow*12;
+    var oppCostDown=downPmt*(Math.pow(1+altRetPct/100,yr)-Math.pow(1+altRetPct/100,yr-1));
+    cumBuyCost+=annualBuy+oppCostDown;
+    cumRentCost+=annualRent;
+    rentNow=rentNow*(1+rentRise/100);
+    if(breakEvenYr===null && cumBuyCost<=cumRentCost) breakEvenYr=yr;
+  }
+  if(breakEvenYr===null) breakEvenYr='>'+hold;
+
+  // Home equity at end of hold
+  var homeVal=adjPrice*Math.pow(1+apprPct/100,hold);
+  var remainingLoan=loanAmt;
+  for(var p=0;p<hold*12;p++){
+    var interest=remainingLoan*monthlyRate;
+    var principal=monthlyMtg-interest;
+    remainingLoan=Math.max(0,remainingLoan-principal);
+  }
+  var equity=homeVal-remainingLoan;
+  var totalRentPaid=0;var r2=rentMo;
+  for(var y2=0;y2<hold;y2++){totalRentPaid+=r2*12;r2=r2*(1+rentRise/100);}
+  var investedDown=downPmt*Math.pow(1+altRetPct/100,hold);
+  var netBuy=equity-downPmt-(monthlyCost*12*hold-monthlyMtg*12*hold)-(monthlyMtg*12*hold);
+  var netRent=-(totalRentPaid)+(investedDown-downPmt);
+  var buyAdvantage=equity-investedDown-(monthlyCost-monthlyMtg)*12*hold;
+
+  // Market timing: buy now vs wait 1 year
+  var futurePrice=adjPrice*(1+priceChg/100);
+  var futureRate=ratePct+rateChg;
+  var futureMonthlyRate=futureRate/100/12;
+  var futureLoan=futurePrice*(1-depPct);
+  var futureMtg=futureMonthlyRate===0?futureLoan/n360:futureLoan*(futureMonthlyRate*Math.pow(1+futureMonthlyRate,n360))/(Math.pow(1+futureMonthlyRate,n360)-1);
+  var mtgDiff=(futureMtg-monthlyMtg)*12;
+  var timingVerdict=mtgDiff>200?'Wait costs you $'+Math.round(mtgDiff/12)+'/mo more':mtgDiff<-200?'Waiting saves $'+Math.round(Math.abs(mtgDiff)/12)+'/mo':'Timing impact is minimal';
+
+  exHasRun=true;
+  document.getElementById('reset-ex-btn').style.display='flex';
+  // Score as % of price so it works from $300k to $10M
+  var advRatio = buyAdvantage / adjPrice;
+  // Apply holding period penalty: longer holds hurt if appreciation doesn't clearly beat alt return
+  var holdPenalty = hold * 0.012;
+  var adjAdvRatio = advRatio - holdPenalty;
+  var score=adjAdvRatio>0.03?3:adjAdvRatio>-0.02?2.5:adjAdvRatio>-0.08?2:adjAdvRatio>-0.18?1.5:1;
+  var dsInfo=getDealStrength(score,'ex');
+  exGrade=dsInfo.score;
+  exMetric='Buy advantage: <strong>'+fmtFull(buyAdvantage)+'</strong><br>Break-even: <strong>'+(typeof breakEvenYr==='number'?'Year '+breakEvenYr:'Beyond '+hold+' yr')+'</strong>';
+  updateCompareBar();
+  var interpText=getInterpEx(score,buyAdvantage,breakEvenYr,hold,apprPct,altRetPct);
+  var objItems=getObjEx(score,buyAdvantage,breakEvenYr,hold,rentMo,monthlyMtg,hoa,taxIns,rateChg,priceChg);
+
+  var s1=Math.min(96,Math.round(40+apprPct*8));
+  var s2=Math.min(96,Math.round(30+altRetPct*6));
+  var s3=Math.min(96,Math.round(25+hold*3));
+  var s4=Math.min(96,Math.round(30+rentMo/150));
+  var s5=Math.min(96,Math.round(20+rentRise*8));
+  var advClass=adjAdvRatio>0.03?'green':adjAdvRatio>-0.02?'amber':'red';
+  var monthlyDiff = monthlyCost - rentMo;
+  var monthlyNote = monthlyDiff>0 ? 'Owning costs $'+Math.round(monthlyDiff).toLocaleString()+'/mo more than renting' : 'Owning costs $'+Math.round(Math.abs(monthlyDiff)).toLocaleString()+'/mo less than renting';
+
+  document.getElementById('outputs-col').innerHTML=
+    dealStrengthHTML(dsInfo)+
+    '<div class="card">'+
+      '<div class="card-eyebrow teal">What buying vs. renting actually looks like</div>'+
+      '<div style="font-size:12px;color:var(--text3);margin-bottom:13px;line-height:1.6">The full picture -- monthly cash flow, how long until buying beats renting, and whether the equity upside justifies pulling the down payment out of investments.</div>'+
+      '<div class="kpi-grid">'+
+        kpi('Purchase Price',fmt(adjPrice),'','After any seller concession')+
+        kpi('Down Payment',fmt(downPmt),'amber','Cash out of your investment portfolio at closing')+
+        kpi('Monthly to Own',fmt(monthlyCost),'',monthlyNote)+
+        kpi('Monthly to Rent',fmt(rentMo),'','Comparable rental in the same market')+
+        kpi('Break-even Year',(typeof breakEvenYr==='number'?'Year '+breakEvenYr:breakEvenYr),'teal','When total buy cost drops below total rent cost')+
+        kpi('Buy Advantage',fmtFull(buyAdvantage),advClass,'Equity upside vs. renting + investing down pmt')+
+      '</div>'+
+      '<div style="background:var(--bg);border-radius:var(--r);padding:12px 14px;margin-bottom:12px;font-size:12px;color:var(--text2);line-height:1.7">'+
+        '<strong>Plain English:</strong> Buying costs <strong>'+fmt(monthlyCost)+'/mo</strong> all-in vs. <strong>'+fmt(rentMo)+'/mo</strong> to rent. The '+fmt(downPmt)+' down payment pulled from investments gives up roughly '+fmt(downPmt*altRetPct/100)+'/yr in investment returns. But the home is expected to gain '+fmt(adjPrice*apprPct/100)+'/yr in value. The break-even -- when buying becomes cheaper than renting on a total cost basis -- arrives in <strong>'+(typeof breakEvenYr==='number'?'Year '+breakEvenYr:breakEvenYr)+'</strong>.'+
+      '</div>'+
+      '<div class="sdiv"><span>What moves the grade most</span></div>'+
+      sensRow('Appreciation rate',s1,'ex')+
+      sensRow('Alt. investment return',s2,'ex')+
+      sensRow('Holding period',s3,'ex')+
+      sensRow('Monthly rent',s4,'ex')+
+      sensRow('Annual rent increase',s5,'ex')+
+      '<div class="interp interp-ex">'+interpText+'</div>'+
+      summaryBox('What this means for you',
+        (function(){
+          var mDiff = monthlyCost - rentMo;
+          var beText = typeof breakEvenYr==='number' ? 'Buying becomes cheaper than renting in <strong class="ss-green">Year '+breakEvenYr+'</strong>.' : 'Buying does not outperform renting within the '+hold+'-year modeled period.';
+          if(mDiff>0 && typeof breakEvenYr==='number' && breakEvenYr<=7){
+            return 'Buying costs <strong class="ss-amber">$'+Math.round(mDiff).toLocaleString()+'/mo more</strong> than renting right now. But equity builds over time and rent keeps rising. '+beText+' If you plan to stay past that point, the higher monthly cost is worth it.';
+          } else if(mDiff>0 && (typeof breakEvenYr!=='number' || breakEvenYr>10)){
+            return 'Buying costs <strong class="ss-red">$'+Math.round(mDiff).toLocaleString()+'/mo more</strong> than renting and the break-even is a long way out. '+beText+' This is a difficult financial case -- lifestyle and stability reasons to own would need to outweigh the numbers.';
+          } else if(mDiff<=0){
+            return 'Buying costs <strong class="ss-green">$'+Math.round(Math.abs(mDiff)).toLocaleString()+'/mo less</strong> than renting comparable housing. '+beText+' The monthly cash flow case for buying is clear -- you pay less to own than to rent.';
+          } else {
+            return 'The monthly cost difference between buying and renting is modest at <strong>$'+Math.round(Math.abs(mDiff)).toLocaleString()+'/mo</strong>. '+beText;
+          }
+        })()
+      )+
+    '</div>'+
+    '<div class="card">'+
+      '<div class="card-eyebrow teal">Market timing -- buy now vs. wait 1 year</div>'+
+      '<div class="timing-grid">'+
+        tc('Future Price',fmt(futurePrice),'If you wait 12 months')+
+        tc('Future Mortgage',fmt(futureMtg)+'/mo','At projected rate of '+futureRate.toFixed(1)+'%')+
+        tc('Timing verdict',timingVerdict,mtgDiff>200?'Buying now saves money':mtgDiff<-200?'Waiting may be favorable':'Low timing sensitivity')+
+      '</div>'+
+      '<div class="chart-wrap"><canvas id="timingChart"></canvas></div>'+
+      summaryBox('What this means for you',
+        (function(){
+          var priceDiff = futurePrice - adjPrice;
+          var absMtgDiff = Math.abs(Math.round(mtgDiff/12));
+          if(mtgDiff>200 && priceDiff>0){
+            return 'If you wait 12 months, this home is projected to cost <strong class="ss-red">'+fmt(priceDiff)+' more</strong> and your monthly mortgage would increase by <strong class="ss-red">$'+absMtgDiff+'/mo</strong>. Buying now locks in a lower payment and a lower price. Waiting is working against you on both fronts.';
+          } else if(mtgDiff<-200 && priceDiff<=0){
+            return 'If you wait 12 months, rates are projected to drop and the home price may soften -- bringing your monthly payment down by roughly <strong class="ss-green">$'+absMtgDiff+'/mo</strong>. The timing case for waiting is reasonable, though you risk losing the home to another buyer.';
+          } else if(mtgDiff>200 && priceDiff<=0){
+            return 'Rates are projected to rise by <strong class="ss-red">'+Math.abs(rateChg).toFixed(1)+'%</strong>, which would add <strong class="ss-red">$'+absMtgDiff+'/mo</strong> to your payment even if the price holds flat or drops. Rate risk is the bigger concern here -- the longer you wait, the more expensive the mortgage becomes.';
+          } else if(mtgDiff<-200 && priceDiff>0){
+            return 'Rates may drop but the home price is projected to rise by <strong class="ss-amber">'+fmt(priceDiff)+'</strong>. The monthly payment savings of <strong class="ss-green">$'+absMtgDiff+'/mo</strong> may not offset a higher purchase price. Run both scenarios carefully before deciding to wait.';
+          } else {
+            return 'The projected rate and price changes over the next 12 months are relatively small. Timing sensitivity is low -- the decision should be based on your personal readiness and the rent vs. buy math, not on trying to time the market.';
+          }
+        })()
+      )+
+    '</div>'+
+    '<div class="card">'+
+      '<div class="card-eyebrow teal">Cumulative cost -- buy vs. rent over time</div>'+
+      '<div class="chart-wrap"><canvas id="rentBuyChart"></canvas></div>'+
+      summaryBox('What this means for you',
+        (function(){
+          var totalRentHold = Math.round(rentMo * 12 * hold * (1 + rentRise/100/2));
+          var totalBuyCost  = Math.round((monthlyCost * 12 * hold) + downPmt);
+          var homeValHold   = Math.round(adjPrice * Math.pow(1+apprPct/100, hold));
+          var equityHold    = Math.round(homeValHold - loanAmt * Math.pow(1-(monthlyRate/(1+monthlyRate)), hold*12));
+          var rentInvested  = Math.round(downPmt * Math.pow(1+altRetPct/100, hold));
+          if(typeof breakEvenYr === 'number'){
+            return 'Over <strong>'+hold+' year'+(hold===1?'':'s')+'</strong>, renting costs roughly <strong>'+fmt(totalRentHold)+'</strong> with nothing to show for it at the end. Buying costs more upfront but builds equity -- your home is projected to be worth <strong class="ss-green">'+fmt(homeValHold)+'</strong> by year '+hold+'. Buying starts outperforming renting on a total cost basis in <strong class="ss-green">Year '+breakEvenYr+'</strong>. If you plan to stay longer than that, buying makes financial sense.';
+          } else {
+            return 'Over <strong>'+hold+' year'+(hold===1?'':'s')+'</strong>, the total cost of buying -- including your down payment opportunity cost -- does not drop below the total cost of renting within the modeled period. If you plan to stay fewer than '+hold+' years, renting and keeping your <strong>'+fmt(downPmt)+'</strong> invested may be the stronger financial move.';
+          }
+        })()
+      )+
+    '</div>'+
+    '<div class="card">'+
+      '<div class="card-eyebrow teal">Buyer objection summary</div>'+
+      '<div class="obj-list">'+objItems+'</div>'+
+    '</div>';
+
+  buildRentBuyChart(adjPrice,depPct,monthlyMtg,hoa,taxIns,rentMo,rentRise,altRetPct,apprPct,hold,downPmt,monthlyRate);
+  buildTimingChart(adjPrice,ratePct,rateChg,priceChg,depPct,n360);
+}
+
+/* ══════ HELPER RENDERERS ══════ */
+function kpi(label,val,cls,ctx){
+  return '<div class="kpi"><div class="kpi-label">'+label+'</div><div class="kpi-val'+(cls?' '+cls:'')+(val.length>7?' sm':'')+'">'+val+'</div><div class="kpi-ctx">'+ctx+'</div></div>';
+}
+function tc(label,val,ctx){
+  return '<div class="timing-card"><div class="tc-label">'+label+'</div><div class="tc-val">'+val+'</div><div class="tc-ctx">'+ctx+'</div></div>';
+}
+function sensRow(lbl,pct,mode){
+  var v=pct>70?'High':pct>45?'Medium':'Lower';
+  return '<div class="sens-row"><span class="sens-lbl">'+lbl+'</span><div class="sens-track"><div class="sens-fill-'+mode+'" style="width:'+pct+'%"></div></div><span class="sens-v">'+v+'</span></div>';
+}
+function dealStrengthHTML(d){
+  return '<div class="deal-card '+d.cls+'"><div><div class="dc-label">Deal Strength</div><div class="dc-title">'+d.title+'</div><div class="dc-sub">'+d.sub+'</div></div><div class="dc-score">'+d.score+'</div></div>';
+}
+function getDealStrength(score,mode){
+  if(score>=3)   return {cls:'dc-strong',    title:'Strong',      score:'A', sub:mode==='pre'?'Appreciation clearly outpaces the cost of waiting. Financially motivated buyers can make a compelling case. This range converts well.':'Buying compares favorably to renting and investing the difference. The equity upside justifies pulling the down payment out of the market.'};
+  if(score>=2.5) return {cls:'dc-strong',    title:'Favorable',   score:'B', sub:mode==='pre'?'The math is positive but not by a wide margin. Works well for end-users and lifestyle buyers. Investor buyers will still scrutinize the numbers.':'The financial case is reasonably solid. Break-even arrives at a manageable point and appreciation is doing enough work to justify buying over renting.'};
+  if(score>=2)   return {cls:'dc-borderline',title:'Borderline',  score:'C', sub:mode==='pre'?'Appreciation is not clearly outpacing wait cost. A buyer running the numbers will hesitate. An incentive or shorter timeline could shift this.':'The rent vs. buy math is close. The decision depends heavily on how long the buyer stays and whether local rents continue rising.'};
+  if(score>=1.5) return {cls:'dc-weak',      title:'Challenging', score:'D', sub:mode==='pre'?'The financial gap is meaningful. Without a price concession or shorter timeline, this is a difficult case to make to financially oriented buyers.':'Buying is hard to justify on numbers alone at current assumptions. Renting and investing the difference likely outperforms over the near term.'};
+  return         {cls:'dc-weak',             title:'Weak',        score:'F', sub:mode==='pre'?'The wait cost significantly outpaces expected appreciation. Conversion will depend almost entirely on lifestyle motivation, not financial logic.':'The financial case does not close at these assumptions. A buyer keeping their down payment invested will likely come out ahead over the modeled period.'};
+}
+
+/* ══════ INTERPRETATIONS ══════ */
+function getInterpPre(score,net,months,altRetPct,deposit,apprPct,breakEvenRate){
+  if(score>=2.5) return 'The financial case for this purchase is clear. Expected appreciation meaningfully outpaces wait cost and opportunity cost -- making this a straightforward decision for financially motivated buyers.';
+  if(score>=1.5) return 'The math is close. A buyer who models this will hesitate. Expected appreciation is not materially outpacing the cost of waiting at '+apprPct.toFixed(1)+'%/yr, and the deposit tied up for '+months+' months has meaningful opportunity cost at current alternative return assumptions. A targeted concession or shorter timeline significantly improves the picture.';
+  return 'The financial disadvantage is material -- a '+(fmt(Math.abs(net)))+' gap between expected gain and total wait cost. Investor-type buyers are unlikely to convert without a structural change. End-user and lifestyle buyers, where emotional utility partially offsets the calculus, are the more viable conversion target.';
+}
+function getInterpEx(score,buyAdv,breakEvenYr,hold,apprPct,altRetPct){
+  if(score>=2.5) return 'Buying now compares favorably to renting and investing the difference. Home appreciation at '+apprPct.toFixed(1)+'%/yr meaningfully outpaces the alternative investment return assumption, and the break-even year arrives early enough to make sense for most holding periods.';
+  if(score>=1.5) return 'The rent vs. buy math is competitive but not decisive. The outcome depends heavily on how long the buyer holds, what happens to local rents, and whether appreciation assumptions prove realistic. Buyers with a longer time horizon and lifestyle reasons to own will find this more compelling than purely financial buyers.';
+  return 'On a pure financial basis, renting and investing the down payment competes with buying at current assumptions. The alternative investment return at '+altRetPct.toFixed(1)+'%/yr is working against the ownership case. Buyers who intend to stay long-term or have strong lifestyle motivation are still viable -- but the financial pitch alone is weak.';
+}
+
+/* ══════ OBJECTIONS ══════ */
+function getObjPre(net,breakEvenRate,apprPct,months,altRetPct,deposit,score){
+  var items=[
+    {cls:net<0?'obj-r':'obj-g',text:net<0?'<strong>Capital opportunity cost is significant.</strong> The deposit locked for '+months+' months could generate meaningful returns if kept invested at current alternative return assumptions. Buyers who run this math will hesitate.':'<strong>Capital opportunity cost is manageable.</strong> Expected appreciation outpaces what the deposit would generate if kept invested -- the financial case holds up to scrutiny.'},
+    {cls:(breakEvenRate*100)>6?'obj-r':(breakEvenRate*100)>4?'obj-a':'obj-g',text:(breakEvenRate*100)>6?'<strong>Appreciation assumption is doing heavy lifting.</strong> This deal requires '+(breakEvenRate*100).toFixed(1)+'%/yr appreciation to break even -- above Hawaii\'s historical average. Financially oriented buyers will push back on this assumption.':'<strong>Appreciation threshold is achievable.</strong> Requires '+(breakEvenRate*100).toFixed(1)+'%/yr -- within historical norms for this submarket. The appreciation story is defensible.'},
+    {cls:months>42?'obj-r':months>24?'obj-a':'obj-g',text:months>42?'<strong>Timeline is a significant barrier.</strong> '+months+' months is a long commitment. Each additional month adds wait cost and competes with liquid alternatives -- this is likely the first objection a financially minded buyer raises.':months>24?'<strong>Timeline is a moderate concern.</strong> '+months+' months is manageable but worth addressing directly in the sales conversation, especially for buyers who are comparing to liquid alternatives.':'<strong>Timeline is favorable.</strong> At '+months+' months, the wait period is short enough that opportunity cost is limited and buyer hesitation on timing should be minimal.'},
+    {cls:score>=2.5?'obj-g':score>=1.5?'obj-a':'obj-r',text:score>=2.5?'<strong>Best buyer profile: either investor or end-user.</strong> The financial case is strong enough that even investment-minded buyers can make it work. Lead with the appreciation story and equity upside.':'<strong>Best buyer profile: end-user or lifestyle buyer.</strong> Investor-type buyers will struggle to justify the math against liquid alternatives. Focus on lifestyle, scarcity, and long-term equity -- not short-term financial return.'}
+  ];
+  return items.map(function(i){return '<div class="obj-item"><span class="obj-dot '+i.cls+'"></span><span>'+i.text+'</span></div>';}).join('');
+}
+function getObjEx(score,buyAdv,breakEvenYr,hold,rentMo,monthlyMtg,hoa,taxIns,rateChg,priceChg){
+  var monthlyCost=monthlyMtg+hoa+taxIns;
+  var items=[
+    {cls:monthlyCost>rentMo*1.3?'obj-r':monthlyCost>rentMo?'obj-a':'obj-g',text:monthlyCost>rentMo?'<strong>Monthly cost to own exceeds comparable rent.</strong> At $'+Math.round(monthlyCost).toLocaleString()+'/mo to own vs. $'+Math.round(rentMo).toLocaleString()+'/mo to rent, the buyer\'s near-term cash flow is under pressure. The long-term equity case needs to be made explicitly.':'<strong>Monthly cost to own is competitive with renting.</strong> Owning is not significantly more expensive than renting on a monthly basis -- the cash flow hurdle is low, which removes one of the most common objections.'},
+    {cls:typeof breakEvenYr==='number'&&breakEvenYr<=5?'obj-g':typeof breakEvenYr==='number'&&breakEvenYr<=10?'obj-a':'obj-r',text:typeof breakEvenYr==='number'?'<strong>Break-even year: Year '+breakEvenYr+'.</strong> '+(breakEvenYr<=5?'Buying starts outperforming renting relatively quickly -- this is a strong argument for buyers who plan to stay at least 5 years.':breakEvenYr<=10?'The break-even arrives in year '+breakEvenYr+'. Buyers need to commit to a reasonably long hold period for the financial case to close.':'The break-even is a long way out. Buyers with shorter time horizons are better off renting and investing the difference.'):'<strong>Break-even does not arrive within the modeled holding period.</strong> Renting + investing the down payment outperforms buying under current assumptions.'},
+    {cls:rateChg<-0.5?'obj-g':rateChg>0.5?'obj-r':'obj-a',text:rateChg<-0.5?'<strong>Rate environment favors buying now.</strong> Rates are expected to fall, which means waiting could reduce monthly payments -- but it may also push prices higher. Locking in today protects against price appreciation risk.':rateChg>0.5?'<strong>Rising rates increase urgency to buy now.</strong> If rates rise as projected, waiting will mean a higher monthly payment on the same home. This is a concrete financial argument for acting sooner.':'<strong>Rate timing is relatively neutral.</strong> The projected rate change does not dramatically alter the monthly payment calculation -- timing sensitivity is low.'},
+    {cls:score>=2.5?'obj-g':score>=1.5?'obj-a':'obj-r',text:score>=2.5?'<strong>Overall financial case: buy.</strong> On a total cost basis over the holding period, buying compares favorably to renting and investing. The equity upside and rent escalation risk work in the buyer\'s favor.':'<strong>The financial case is competitive but not decisive.</strong> Lifestyle and stability motivations strengthen the buy case where the pure financial math is close. Buyers with a defined long-term plan are the strongest candidates.'}
+  ];
+  return items.map(function(i){return '<div class="obj-item"><span class="obj-dot '+i.cls+'"></span><span>'+i.text+'</span></div>';}).join('');
+}
+
+/* ══════ CHARTS ══════ */
+function summaryBox(label, html){
+  return '<div class="section-summary"><div class="ss-label">'+label+'</div><div class="ss-text">'+html+'</div></div>';
+}
+
+function buildWaitChart(oppCost,rentTotal,apprGain){
+  destroyChart('waitChart');
+  var ctx=document.getElementById('waitChart');
+  if(!ctx)return;
+  charts['waitChart']=new Chart(ctx.getContext('2d'),{
+    type:'bar',
+    data:{
+      labels:['Opportunity Cost\n(locked deposit)','Housing Cost\nDuring Wait','Expected\nAppreciation Gain'],
+      datasets:[{data:[Math.round(oppCost),Math.round(rentTotal),Math.round(apprGain)],backgroundColor:['rgba(153,60,29,.75)','rgba(133,79,11,.65)','rgba(15,110,86,.75)'],borderRadius:6,borderSkipped:false}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return ' $'+c.raw.toLocaleString();}}}},scales:{x:{grid:{display:false},ticks:{font:{size:11},color:'#6b6b67'}},y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:function(v){return '$'+(v/1000)+'k';},font:{size:11},color:'#6b6b67'}}}}
+  });
+}
+
+function buildCompareChart(deposit,altRetPct,adjPrice,apprPct,hold,hoa,taxIns,ratePct,depPct){
+  destroyChart('compareChart');
+  var ctx=document.getElementById('compareChart');
+  if(!ctx)return;
+  var labels=[],buyVals=[],investVals=[];
+  var loanAmt=adjPrice*(1-depPct);
+  var mr=ratePct/100/12;
+  var monthlyMtg=mr===0?loanAmt/360:loanAmt*(mr*Math.pow(1+mr,360))/(Math.pow(1+mr,360)-1);
+  var remaining=loanAmt;
+  for(var y=0;y<=hold;y++){
+    labels.push('Yr '+y);
+    var homeVal=adjPrice*Math.pow(1+apprPct/100,y);
+    if(y>0){for(var p=0;p<12;p++){var int=remaining*mr;remaining=Math.max(0,remaining-(monthlyMtg-int));}}
+    buyVals.push(Math.round(homeVal-remaining));
+    investVals.push(Math.round(deposit*Math.pow(1+altRetPct/100,y)));
+  }
+  charts['compareChart']=new Chart(ctx.getContext('2d'),{
+    type:'line',
+    data:{labels:labels,datasets:[
+      {label:'Home equity (buy)',data:buyVals,borderColor:'rgba(24,95,165,.9)',backgroundColor:'rgba(24,95,165,.08)',tension:.4,fill:true,pointRadius:3,borderWidth:2},
+      {label:'Deposit invested',data:investVals,borderColor:'rgba(83,74,183,.8)',backgroundColor:'rgba(83,74,183,.06)',tension:.4,fill:true,pointRadius:3,borderWidth:2,borderDash:[5,4]}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},color:'#6b6b67',boxWidth:12,padding:14}}},scales:{x:{grid:{display:false},ticks:{font:{size:11},color:'#6b6b67'}},y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:function(v){return '$'+(v/1000)+'k';},font:{size:11},color:'#6b6b67'}}}}
+  });
+}
+
+function buildRentBuyChart(adjPrice,depPct,monthlyMtg,hoa,taxIns,rentMo,rentRise,altRetPct,apprPct,hold,downPmt,mr){
+  destroyChart('rentBuyChart');
+  var ctx=document.getElementById('rentBuyChart');
+  if(!ctx)return;
+  var labels=[],buyVals=[],rentVals=[];
+  var cumBuy=downPmt,cumRent=0,rentNow=rentMo,remaining=adjPrice*(1-depPct);
+  for(var y=0;y<=hold;y++){
+    labels.push('Yr '+y);
+    buyVals.push(Math.round(cumBuy));
+    rentVals.push(Math.round(cumRent));
+    if(y<hold){
+      var annBuy=(monthlyMtg+hoa+taxIns)*12;
+      var oppIncr=downPmt*(Math.pow(1+altRetPct/100,y+1)-Math.pow(1+altRetPct/100,y));
+      cumBuy+=annBuy+oppIncr;
+      cumRent+=rentNow*12;
+      rentNow*=(1+rentRise/100);
+    }
+  }
+  charts['rentBuyChart']=new Chart(ctx.getContext('2d'),{
+    type:'line',
+    data:{labels:labels,datasets:[
+      {label:'Cumulative cost to buy',data:buyVals,borderColor:'rgba(15,116,144,.9)',backgroundColor:'rgba(15,116,144,.08)',tension:.4,fill:true,pointRadius:3,borderWidth:2},
+      {label:'Cumulative cost to rent',data:rentVals,borderColor:'rgba(133,79,11,.8)',backgroundColor:'rgba(133,79,11,.06)',tension:.4,fill:true,pointRadius:3,borderWidth:2,borderDash:[5,4]}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},color:'#6b6b67',boxWidth:12,padding:14}}},scales:{x:{grid:{display:false},ticks:{font:{size:11},color:'#6b6b67'}},y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:function(v){return '$'+(v/1000)+'k';},font:{size:11},color:'#6b6b67'}}}}
+  });
+}
+
+function buildTimingChart(adjPrice,ratePct,rateChg,priceChg,depPct,n360){
+  destroyChart('timingChart');
+  var ctx=document.getElementById('timingChart');
+  if(!ctx)return;
+  var labels=[],nowVals=[],waitVals=[];
+  for(var m=0;m<=12;m++){
+    labels.push('Mo '+m);
+    var mr1=ratePct/100/12;
+    var loan1=adjPrice*(1-depPct);
+    var mtg1=mr1===0?loan1/n360:loan1*(mr1*Math.pow(1+mr1,n360))/(Math.pow(1+mr1,n360)-1);
+    nowVals.push(Math.round(mtg1));
+    var futR=ratePct+(rateChg/12*m);
+    var futP=adjPrice*(1+priceChg/100/12*m);
+    var mr2=futR/100/12;
+    var loan2=futP*(1-depPct);
+    var mtg2=mr2===0?loan2/n360:loan2*(mr2*Math.pow(1+mr2,n360))/(Math.pow(1+mr2,n360)-1);
+    waitVals.push(Math.round(mtg2));
+  }
+  charts['timingChart']=new Chart(ctx.getContext('2d'),{
+    type:'line',
+    data:{labels:labels,datasets:[
+      {label:'Buy now (monthly payment)',data:nowVals,borderColor:'rgba(15,116,144,.9)',backgroundColor:'rgba(15,116,144,.08)',tension:.3,fill:false,pointRadius:3,borderWidth:2},
+      {label:'If you wait (projected payment)',data:waitVals,borderColor:'rgba(153,60,29,.8)',backgroundColor:'rgba(153,60,29,.06)',tension:.3,fill:false,pointRadius:3,borderWidth:2,borderDash:[5,4]}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},color:'#6b6b67',boxWidth:12,padding:14}}},scales:{x:{grid:{display:false},ticks:{font:{size:11},color:'#6b6b67'}},y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:function(v){return '$'+v.toLocaleString();},font:{size:11},color:'#6b6b67'}}}}
+  });
+}
+
+// init
+setMode('pre');
+</script>
+</body>
+</html>
